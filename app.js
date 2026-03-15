@@ -82,7 +82,7 @@ snapBtn.addEventListener('click', async (e) => {
 });
 
 // 4. Build Strip (Center Crop 500x400)
-/*async function generateFinalLayout() {
+async function generateFinalLayout() {
     const finalCanvas = document.createElement('canvas');
     const ctx = finalCanvas.getContext('2d');
     finalCanvas.width = 600; finalCanvas.height = 1800;
@@ -118,10 +118,10 @@ snapBtn.addEventListener('click', async (e) => {
         mainUI.style.display = 'none';
         resultContainer.style.display = 'flex';
     };
-} */
+} 
 
 // 4. Build Final 4x6 Layout (2 Strips Side by Side)
-async function generateFinalLayout() {
+/*async function generateFinalLayout() {
     const finalCanvas = document.createElement('canvas');
     const ctx = finalCanvas.getContext('2d');
     
@@ -187,7 +187,7 @@ async function generateFinalLayout() {
         mainUI.style.display = 'none';
         resultContainer.style.display = 'flex';
     };
-}
+} */
 // 5. Controls
 document.getElementById('restart').addEventListener('click', () => {
     resultContainer.style.display = 'none';
