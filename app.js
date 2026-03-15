@@ -1,3 +1,11 @@
+// 1. MOBILE VIEWPORT HEIGHT FIX
+function fixMobileHeight() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+window.addEventListener('resize', fixMobileHeight);
+fixMobileHeight();
+
 const video = document.getElementById('video');
 const snapBtn = document.getElementById('snap');
 const switchBtn = document.getElementById('switch-cam');
@@ -13,7 +21,7 @@ const shutterSound = new Audio('assets/shutter.mp3');
 let capturedPhotos = [];
 let currentFacingMode = 'user';
 
-// 1. Camera Initialization
+// 2. CAMERA INITIALIZATION
 async function startCamera() {
     if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
@@ -25,7 +33,7 @@ async function startCamera() {
         video.srcObject = stream;
         video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
     } catch (err) {
-        alert("Camera access denied or not found.");
+        alert("Please enable camera access.");
     }
 }
 
@@ -36,23 +44,7 @@ switchBtn.addEventListener('click', () => {
 
 startCamera();
 
-// 2. Auto-Save Logic (Reload Fix)
-function triggerAutoSave(dataUrl) {
-    const byteString = atob(dataUrl.split(',')[1]);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-    const blob = new Blob([ab], {type: 'image/png'});
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `booth-${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// 3. Generate Single 2x6 Strip
+// 3. GENERATE THE 2x6 STRIP
 async function generateFinalLayout() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -82,22 +74,23 @@ async function generateFinalLayout() {
             ctx.drawImage(img, sx, sy, sW, sH, sideM, dy, slotW, slotH);
         }
         ctx.drawImage(overlay, 0, 0, 600, 1800);
-        const data = canvas.toDataURL('image/png');
-        resultImg.src = data;
-        triggerAutoSave(data);
+        
+        const finalData = canvas.toDataURL('image/png');
+        resultImg.src = finalData;
+
+        // Auto-save logic
+        const link = document.createElement('a');
+        link.href = finalData;
+        link.download = `photobooth-${Date.now()}.png`;
+        link.click();
+
         mainUI.style.display = 'none';
         resultContainer.style.display = 'flex';
-        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
     };
 }
 
-// 4. Session Trigger
+// 4. CAPTURE SEQUENCE
 snapBtn.addEventListener('click', async () => {
-    // Attempt Full Screen for mobile
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-    }
-
     snapBtn.classList.add('hidden');
     switchBtn.classList.add('hidden');
     capturedPhotos = [];
@@ -120,6 +113,7 @@ snapBtn.addEventListener('click', async () => {
         const shot = c.toDataURL('image/png');
         capturedPhotos.push(shot);
         shutterSound.play();
+        
         flashEl.style.display = 'block';
         setTimeout(() => flashEl.style.display = 'none', 100);
 
@@ -132,7 +126,7 @@ snapBtn.addEventListener('click', async () => {
 });
 
 document.getElementById('restart').addEventListener('click', () => {
-    location.reload(); // Cleanest way to reset the camera and UI
+    location.reload(); 
 });
 
 document.getElementById('print-btn').addEventListener('click', () => window.print());
