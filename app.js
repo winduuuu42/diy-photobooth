@@ -21,19 +21,23 @@ const shutterSound = new Audio('assets/shutter.mp3');
 let capturedPhotos = [];
 let currentFacingMode = 'user';
 
-// 2. CAMERA INITIALIZATION
+// 2. CAMERA INITIALIZATION (Forcing 4:3 Ratio)
 async function startCamera() {
     if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
     }
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
+            video: { 
+                facingMode: currentFacingMode, 
+                width: { ideal: 1024 }, 
+                height: { ideal: 768 } 
+            } 
         });
         video.srcObject = stream;
         video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
     } catch (err) {
-        alert("Please enable camera access.");
+        alert("Please enable camera access via HTTPS.");
     }
 }
 
@@ -78,7 +82,7 @@ async function generateFinalLayout() {
         const finalData = canvas.toDataURL('image/png');
         resultImg.src = finalData;
 
-        // Auto-save logic
+        // Auto-save
         const link = document.createElement('a');
         link.href = finalData;
         link.download = `photobooth-${Date.now()}.png`;

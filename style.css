@@ -10,26 +10,47 @@ html, body {
 .view-panel {
     width: 100%;
     height: 100vh;
-    height: calc(var(--vh, 1vh) * 100); /* Respects mobile browser bars */
+    height: calc(var(--vh, 1vh) * 100);
     display: flex; align-items: center; justify-content: center;
 }
 
 #booth-container { 
     position: relative; width: 100vw; height: 100%; 
     display: flex; justify-content: center; align-items: center; overflow: hidden;
+    background: #000;
 }
 
-video { width: 100%; height: 100%; object-fit: cover; }
+video { 
+    width: 100%; height: 100%; 
+    object-fit: contain; /* Shows exact camera feed without zooming */
+    background: #111;
+}
 
-/* 2. FLOATING CONTROLS (LIFTED FOR MOBILE) */
+/* 2. VIEWFINDER GUIDE (Only on Mobile) */
+@media (max-width: 768px) {
+    #booth-container::after {
+        content: "STAY INSIDE THE BOX";
+        position: absolute;
+        width: 85vw; /* Width of the guide */
+        height: calc(85vw * (420 / 550)); /* Maintain 550x420 ratio */
+        border: 2px dashed rgba(255, 215, 0, 0.6);
+        color: gold;
+        display: flex; align-items: flex-end; justify-content: center;
+        padding-bottom: 10px; font-size: 12px;
+        pointer-events: none; z-index: 10;
+        box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.4); /* Dims area outside crop */
+    }
+}
+
+/* 3. FLOATING CONTROLS (MOVED UP) */
 .main-controls {
-    position: absolute; bottom: 25%; /* High enough to clear taskbars */
+    position: absolute; bottom: 25%;
     display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 200; width: 100%;
 }
 
 #snap {
     padding: 20px 50px; font-size: 22px; font-weight: bold;
-    background: rgba(255, 215, 0, 0.35); color: white;
+    background: rgba(255, 215, 0, 0.3); color: white;
     border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50px;
     cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease;
     text-transform: uppercase; letter-spacing: 2px;
@@ -43,7 +64,7 @@ video { width: 100%; height: 100%; object-fit: cover; }
     backdrop-filter: blur(5px); font-size: 22px; display: flex; align-items: center; justify-content: center;
 }
 
-/* 3. RESULT VIEW (TASKBAR FRIENDLY) */
+/* 4. RESULT VIEW (TASKBAR FRIENDLY) */
 .result-layout {
     display: flex; flex-direction: row; align-items: center; justify-content: center;
     gap: 30px; width: 95%; max-height: 95vh;
@@ -62,17 +83,9 @@ video { width: 100%; height: 100%; object-fit: cover; }
 
 .secondary-btn { background: #444; color: #ccc; padding: 12px; border-radius: 8px; border: none; cursor: pointer; }
 
-/* 4. MOBILE RESPONSIVE OVERRIDE */
 @media (max-width: 768px) {
-    video { object-fit: contain; background: #111; }
-    
     .result-layout { flex-direction: column; justify-content: space-evenly; height: 90vh; gap: 10px; }
-    
-    .strip-preview {
-        height: 50vh; /* Strictly limits image height to keep buttons visible */
-        width: auto; border-width: 5px;
-    }
-
+    .strip-preview { height: 50vh; width: auto; border-width: 5px; }
     .controls { width: 100%; padding-bottom: 30px; }
     .controls h1 { font-size: 22px; color: white; margin: 0; text-align: center; }
 }
