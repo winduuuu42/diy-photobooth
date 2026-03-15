@@ -1,68 +1,207 @@
+/* 1. RESET & LOCK SCREEN */
 html, body {
-    margin: 0; padding: 0;
-    width: 100vw; height: 100vh;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     background: #000;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Prevents iPhone "bounce" and accidental zooming */
+    position: fixed;
+    touch-action: manipulation;
 }
 
 .view-panel {
-    width: 100vw; height: 100vh;
-    display: flex; align-items: center; justify-content: center;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#booth-container { position: relative; width: 100%; height: 100%; }
+/* 2. BOOTH VIEWPORT */
+#booth-container { 
+    position: relative; 
+    width: 100vw; 
+    height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    overflow: hidden;
+}
 
 video {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Desktop fills screen */
 }
 
-/* THE CENTERED COUNTDOWN */
-#mini-countdown {
+/* 3. FLOATING CONTROLS - THE "LIFTED" BUTTONS */
+.main-controls {
     position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 250px;
-    color: gold;
-    font-weight: 900;
-    text-shadow: 0 0 40px rgba(0,0,0,0.8);
-    z-index: 100;
-}
-
-#status-text {
-    position: absolute; top: 40px; left: 40px;
-    font-size: 32px; color: white; background: rgba(0,0,0,0.5);
-    padding: 15px 30px; border-radius: 15px;
+    bottom: 25%; /* MOVED UP: Safe from mobile browser bars */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    z-index: 200;
+    width: 100%;
 }
 
 #snap {
-    position: absolute; bottom: 50px; left: 50%;
-    transform: translateX(-50%);
-    padding: 25px 70px; font-size: 30px; font-weight: bold;
-    background: gold; border: none; border-radius: 60px;
-    cursor: pointer; z-index: 110;
+    padding: 22px 55px;
+    font-size: 22px;
+    font-weight: bold;
+    background: rgba(255, 215, 0, 0.3); /* Transparent Gold */
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50px;
+    cursor: pointer;
+    backdrop-filter: blur(10px); /* Glass effect */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
-/* UTILITY CLASS TO HIDE ELEMENTS */
-.hidden { display: none !important; }
+#snap:active {
+    background: rgba(255, 215, 0, 0.9);
+    color: #000;
+    transform: scale(0.92); /* Shrinks slightly when tapped */
+}
+
+.icon-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    color: white;
+    width: 60px; 
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 4. OVERLAYS & FEEDBACK */
+#mini-countdown {
+    position: absolute;
+    font-size: clamp(100px, 40vw, 250px); /* Adjusts size based on screen */
+    color: gold; 
+    font-weight: bold;
+    text-shadow: 0 0 30px rgba(0,0,0,0.8);
+    z-index: 150;
+    pointer-events: none;
+}
+
+#status-text {
+    position: absolute;
+    top: 30px;
+    color: #fff;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
 
 #flash {
-    display: none; position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%; background: white; z-index: 1000;
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    z-index: 1000;
 }
 
+/* 5. PREVIEW & RESULTS */
 #quick-preview {
-    display: none; position: fixed; top: 0; left: 0;
-    width: 100%; height: 100%; background: black; z-index: 500;
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #000;
+    z-index: 500;
 }
-#preview-img { width: 100%; height: 100%; object-fit: contain; }
 
-/* RESULT PAGE */
-.result-layout { display: flex; gap: 60px; align-items: center; color: white; }
-.strip-preview { height: 85vh; border: 12px solid white; background: white; }
-#result-img { height: 100%; width: auto; }
-.controls { display: flex; flex-direction: column; gap: 30px; }
-.primary-btn { background: #28a745; color: white; padding: 30px; font-size: 24px; border-radius: 20px; border: none; cursor: pointer; }
-.secondary-btn { background: #666; color: white; padding: 20px; font-size: 18px; border-radius: 20px; border: none; cursor: pointer; }
+#preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.result-layout {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    max-width: 90%;
+}
+
+.strip-preview {
+    height: 85vh;
+    border: 10px solid white;
+    background: white;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+#result-img {
+    height: 100%;
+    width: auto;
+}
+
+/* 6. BUTTONS */
+.primary-btn {
+    background: #28a745;
+    color: white;
+    padding: 20px 50px;
+    border-radius: 15px;
+    border: none;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+}
+
+.secondary-btn {
+    background: #333;
+    color: #ccc;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    margin-top: 15px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* 7. MOBILE RESPONSIVE (Portrait) */
+@media (max-width: 768px) {
+    video {
+        object-fit: contain; /* Shows full 16:9 frame */
+        background: #111;
+    }
+
+    .result-layout {
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+        padding: 20px 0;
+    }
+
+    .strip-preview {
+        height: 60vh;
+    }
+
+    .controls h1 {
+        font-size: 24px;
+        color: white;
+        margin: 0 0 10px 0;
+    }
+}
+
+.hidden {
+    display: none !important;
+}

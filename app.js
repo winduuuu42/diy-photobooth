@@ -1,6 +1,6 @@
 const video = document.getElementById('video');
 const snapBtn = document.getElementById('snap');
-const statusText = document.getElementById('status-text');
+const switchBtn = document.getElementById('switch-cam');
 const miniCountEl = document.getElementById('mini-countdown');
 const flashEl = document.getElementById('flash');
 const resultContainer = document.getElementById('result-container');
@@ -11,230 +11,128 @@ const previewImg = document.getElementById('preview-img');
 
 const shutterSound = new Audio('assets/shutter.mp3');
 let capturedPhotos = [];
+let currentFacingMode = 'user';
 
-// 1. Camera Start
-navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })
-    .then(stream => { video.srcObject = stream; })
-    .catch(err => console.error(err));
+// 1. Camera Initialization
+async function startCamera() {
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
+        video.srcObject = stream;
+        video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+    } catch (err) {
+        alert("Camera access denied or not found.");
+    }
+}
 
-// 2. Blob Auto-Save (Reload Fix)
+switchBtn.addEventListener('click', () => {
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    startCamera();
+});
+
+startCamera();
+
+// 2. Auto-Save Logic (Reload Fix)
 function triggerAutoSave(dataUrl) {
     const byteString = atob(dataUrl.split(',')[1]);
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
+    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
     const blob = new Blob([ab], {type: 'image/png'});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `booth-strip-${Date.now()}.png`;
+    link.download = `booth-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// 3. 3-Shot Logic
-snapBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    if(snapBtn.disabled) return;
-    
-    // HIDE TEXT & BUTTONS FOR CLEAN LOOK
-    snapBtn.classList.add('hidden');
-    statusText.classList.add('hidden');
-    
-    snapBtn.disabled = true;
-    capturedPhotos = [];
-
-    for (let i = 1; i <= 3; i++) {
-        let count = 5;
-        miniCountEl.innerText = count;
-        
-        await new Promise(resolve => {
-            const timer = setInterval(() => {
-                count--;
-                if (count > 0) miniCountEl.innerText = count;
-                else { clearInterval(timer); miniCountEl.innerText = ""; resolve(); }
-            }, 1000);
-        });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0);
-        const shot = canvas.toDataURL('image/png');
-        capturedPhotos.push(shot);
-
-        shutterSound.play();
-        flashEl.style.display = 'block';
-        setTimeout(() => flashEl.style.display = 'none', 100);
-        
-        previewImg.src = shot;
-        quickPreview.style.display = 'block';
-        await new Promise(r => setTimeout(r, 2000));
-        quickPreview.style.display = 'none';
-    }
-
-    generateFinalLayout();
-});
-
-// 4. Build Strip (Center Crop 500x400)
+// 3. Generate Single 2x6 Strip
 async function generateFinalLayout() {
-    const finalCanvas = document.createElement('canvas');
-    const ctx = finalCanvas.getContext('2d');
-    
-    // BACK TO SINGLE STRIP: 600x1800
-    finalCanvas.width = 600;
-    finalCanvas.height = 1800;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 600; canvas.height = 1800;
 
     const overlay = new Image();
     overlay.src = 'assets/overlay.png'; 
 
-    // --- YOUR UPDATED MEASUREMENTS ---
-    const slotW = 550;      // Image Width
-    const slotH = 420;      // Image Height
-    const topMargin = 140;  // Start point from top
-    const sideMargin = 25;  // 25px Left + 550px Image + 25px Right = 600px Total
-    const gap = 30;         // Vertical space between images
-    // -----------------------------
+    const slotW = 550, slotH = 420, topM = 140, sideM = 25, gap = 30;
 
     overlay.onload = async () => {
-        // Clear the canvas before drawing
-        ctx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
-
         for (let i = 0; i < capturedPhotos.length; i++) {
             const img = new Image();
             img.src = capturedPhotos[i];
             await new Promise(r => img.onload = r);
 
-            // Auto-Crop for 550x420 Landscape Ratio
-            const targetRatio = slotW / slotH;
-            let sWidth, sHeight, sx, sy;
-            
-            if (img.width / img.height > targetRatio) {
-                sHeight = img.height;
-                sWidth = img.height * targetRatio;
-                sx = (img.width - sWidth) / 2;
-                sy = 0;
+            const ratio = slotW / slotH;
+            let sW, sH, sx, sy;
+            if (img.width / img.height > ratio) {
+                sH = img.height; sW = img.height * ratio;
+                sx = (img.width - sW) / 2; sy = 0;
             } else {
-                sWidth = img.width;
-                sHeight = img.width / targetRatio;
-                sx = 0;
-                sy = (img.height - sHeight) / 2;
+                sW = img.width; sH = img.width / ratio;
+                sx = 0; sy = (img.height - sH) / 2;
             }
-
-            // Vertical Placement: Start + (Index * (Height + Gap))
-            const destY = topMargin + (i * (slotH + gap)); 
-            
-            ctx.drawImage(
-                img, 
-                sx, sy, sWidth, sHeight,        // Source (Crop)
-                sideMargin, destY, slotW, slotH // Destination (Position)
-            );
+            const dy = topM + (i * (slotH + gap));
+            ctx.drawImage(img, sx, sy, sW, sH, sideM, dy, slotW, slotH);
         }
-
-        // Draw the Canva overlay on top of everything
         ctx.drawImage(overlay, 0, 0, 600, 1800);
-
-        const finalData = finalCanvas.toDataURL('image/png');
-        resultImg.src = finalData;
-
-        // Triggers the auto-download
-        triggerAutoSave(finalData);
-
-        // Hide Camera, Show Result
+        const data = canvas.toDataURL('image/png');
+        resultImg.src = data;
+        triggerAutoSave(data);
         mainUI.style.display = 'none';
         resultContainer.style.display = 'flex';
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
     };
 }
 
-// 4. Build Final 4x6 Layout (2 Strips Side by Side)
-/*async function generateFinalLayout() {
-    const finalCanvas = document.createElement('canvas');
-    const ctx = finalCanvas.getContext('2d');
-    
-    // Set to 4x6 ratio (1200x1800)
-    finalCanvas.width = 1200;
-    finalCanvas.height = 1800;
+// 4. Session Trigger
+snapBtn.addEventListener('click', async () => {
+    // Attempt Full Screen for mobile
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
 
-    const overlay = new Image();
-    overlay.src = 'assets/overlay.png';
+    snapBtn.classList.add('hidden');
+    switchBtn.classList.add('hidden');
+    capturedPhotos = [];
 
-    overlay.onload = async () => {
-        // Create a temporary canvas for ONE strip
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = 600;
-        tempCanvas.height = 1800;
-
-        for (let i = 0; i < capturedPhotos.length; i++) {
-            const img = new Image();
-            img.src = capturedPhotos[i];
-            await new Promise(r => img.onload = r);
-
-            // Using your dimensions (Change slotH if you changed it in Canva)
-            const slotW = 500; 
-            const slotH = 400; 
-            const targetRatio = slotW / slotH;
-            
-            let sWidth, sHeight, sx, sy;
-            if (img.width / img.height > targetRatio) {
-                sHeight = img.height; sWidth = img.height * targetRatio;
-                sx = (img.width - sWidth) / 2; sy = 0;
-            } else {
-                sWidth = img.width; sHeight = img.width / targetRatio;
-                sx = 0; sy = (img.height - sHeight) / 2;
-            }
-
-            // Draw to the single strip workspace
-            const destY = 150 + (i * (slotH + 50)); 
-            tempCtx.drawImage(img, sx, sy, sWidth, sHeight, 50, destY, slotW, slotH);
+    for (let i = 0; i < 3; i++) {
+        let count = 5;
+        while (count > 0) {
+            miniCountEl.innerText = count;
+            await new Promise(r => setTimeout(r, 1000));
+            count--;
         }
+        miniCountEl.innerText = "";
 
-        // Draw your original Canva overlay on the single strip
-        tempCtx.drawImage(overlay, 0, 0, 600, 1800);
+        const c = document.createElement('canvas');
+        c.width = video.videoWidth; c.height = video.videoHeight;
+        const cx = c.getContext('2d');
+        if(currentFacingMode === 'user') { cx.translate(c.width, 0); cx.scale(-1, 1); }
+        cx.drawImage(video, 0, 0);
+        
+        const shot = c.toDataURL('image/png');
+        capturedPhotos.push(shot);
+        shutterSound.play();
+        flashEl.style.display = 'block';
+        setTimeout(() => flashEl.style.display = 'none', 100);
 
-        // --- DRAW TO THE FINAL 4x6 SHEET ---
-        // Left Strip
-        ctx.drawImage(tempCanvas, 0, 0);
-        // Right Strip
-        ctx.drawImage(tempCanvas, 600, 0);
+        previewImg.src = shot;
+        quickPreview.style.display = 'block';
+        await new Promise(r => setTimeout(r, 1500));
+        quickPreview.style.display = 'none';
+    }
+    generateFinalLayout();
+});
 
-        // --- OPTIONAL: CUTTING GUIDE ---
-        ctx.strokeStyle = "#E0E0E0"; // Light gray
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(600, 0);
-        ctx.lineTo(600, 1800);
-        ctx.stroke();
-
-        const finalData = finalCanvas.toDataURL('image/png');
-        resultImg.src = finalData;
-
-        triggerAutoSave(finalData);
-        mainUI.style.display = 'none';
-        resultContainer.style.display = 'flex';
-    };
-} */
-// 5. Controls
 document.getElementById('restart').addEventListener('click', () => {
-    resultContainer.style.display = 'none';
-    mainUI.style.display = 'flex';
-    
-    // BRING TEXT & BUTTONS BACK
-    snapBtn.classList.remove('hidden');
-    statusText.classList.remove('hidden');
-    
-    statusText.innerText = "CLICK CAPTURE TO START";
-    snapBtn.disabled = false;
+    location.reload(); // Cleanest way to reset the camera and UI
 });
 
-document.getElementById('print-btn').addEventListener('click', () => {
-    const pwin = window.open('', '_blank');
-    pwin.document.write(`<img src="${resultImg.src}" style="width:100%;">`);
-    pwin.document.close();
-    pwin.print();
-});
+document.getElementById('print-btn').addEventListener('click', () => window.print());

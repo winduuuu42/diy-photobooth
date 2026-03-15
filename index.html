@@ -2,8 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Photo Booth</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>K's Photo Booth</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -12,8 +15,13 @@
         <div id="booth-container">
           <video id="video" autoplay playsinline></video>
           <div id="mini-countdown"></div>
-          <div id="status-text">CLICK CAPTURE TO START</div>
-          <button type="button" id="snap">CAPTURE</button>
+          <div id="status-text">READY</div>
+
+          <div class="main-controls">
+            <button type="button" id="switch-cam" class="icon-btn">🔄</button>
+            <button type="button" id="snap">START SESSION</button>
+          </div>
+
           <div id="flash"></div>
         </div>
       </div>
@@ -28,7 +36,7 @@
             <img id="result-img" alt="Final Strip" />
           </div>
           <div class="controls">
-            <h1>HOW DOES IT LOOK?</h1>
+            <h1>SMILES SAVED!</h1>
             <button type="button" id="print-btn" class="primary-btn">
               PRINT PHOTO
             </button>
