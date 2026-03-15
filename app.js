@@ -85,40 +85,71 @@ snapBtn.addEventListener('click', async (e) => {
 async function generateFinalLayout() {
     const finalCanvas = document.createElement('canvas');
     const ctx = finalCanvas.getContext('2d');
-    finalCanvas.width = 600; finalCanvas.height = 1800;
+    
+    // BACK TO SINGLE STRIP: 600x1800
+    finalCanvas.width = 600;
+    finalCanvas.height = 1800;
 
     const overlay = new Image();
-    overlay.src = 'assets/overlay.png';
+    overlay.src = 'assets/overlay.png'; 
+
+    // --- YOUR UPDATED MEASUREMENTS ---
+    const slotW = 550;      // Image Width
+    const slotH = 420;      // Image Height
+    const topMargin = 140;  // Start point from top
+    const sideMargin = 25;  // 25px Left + 550px Image + 25px Right = 600px Total
+    const gap = 30;         // Vertical space between images
+    // -----------------------------
 
     overlay.onload = async () => {
+        // Clear the canvas before drawing
+        ctx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
+
         for (let i = 0; i < capturedPhotos.length; i++) {
             const img = new Image();
             img.src = capturedPhotos[i];
             await new Promise(r => img.onload = r);
 
-            const targetRatio = 500 / 400;
+            // Auto-Crop for 550x420 Landscape Ratio
+            const targetRatio = slotW / slotH;
             let sWidth, sHeight, sx, sy;
+            
             if (img.width / img.height > targetRatio) {
-                sHeight = img.height; sWidth = img.height * targetRatio;
-                sx = (img.width - sWidth) / 2; sy = 0;
+                sHeight = img.height;
+                sWidth = img.height * targetRatio;
+                sx = (img.width - sWidth) / 2;
+                sy = 0;
             } else {
-                sWidth = img.width; sHeight = img.width / targetRatio;
-                sx = 0; sy = (img.height - sHeight) / 2;
+                sWidth = img.width;
+                sHeight = img.width / targetRatio;
+                sx = 0;
+                sy = (img.height - sHeight) / 2;
             }
 
-            const destY = 150 + (i * (400 + 50)); 
-            ctx.drawImage(img, sx, sy, sWidth, sHeight, 50, destY, 500, 400);
+            // Vertical Placement: Start + (Index * (Height + Gap))
+            const destY = topMargin + (i * (slotH + gap)); 
+            
+            ctx.drawImage(
+                img, 
+                sx, sy, sWidth, sHeight,        // Source (Crop)
+                sideMargin, destY, slotW, slotH // Destination (Position)
+            );
         }
 
+        // Draw the Canva overlay on top of everything
         ctx.drawImage(overlay, 0, 0, 600, 1800);
+
         const finalData = finalCanvas.toDataURL('image/png');
         resultImg.src = finalData;
 
+        // Triggers the auto-download
         triggerAutoSave(finalData);
+
+        // Hide Camera, Show Result
         mainUI.style.display = 'none';
         resultContainer.style.display = 'flex';
     };
-} 
+}
 
 // 4. Build Final 4x6 Layout (2 Strips Side by Side)
 /*async function generateFinalLayout() {
