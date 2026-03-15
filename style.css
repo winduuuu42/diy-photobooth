@@ -1,0 +1,68 @@
+html, body {
+    margin: 0; padding: 0;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.view-panel {
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+}
+
+#booth-container { position: relative; width: 100%; height: 100%; }
+
+video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+}
+
+/* THE CENTERED COUNTDOWN */
+#mini-countdown {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 250px;
+    color: gold;
+    font-weight: 900;
+    text-shadow: 0 0 40px rgba(0,0,0,0.8);
+    z-index: 100;
+}
+
+#status-text {
+    position: absolute; top: 40px; left: 40px;
+    font-size: 32px; color: white; background: rgba(0,0,0,0.5);
+    padding: 15px 30px; border-radius: 15px;
+}
+
+#snap {
+    position: absolute; bottom: 50px; left: 50%;
+    transform: translateX(-50%);
+    padding: 25px 70px; font-size: 30px; font-weight: bold;
+    background: gold; border: none; border-radius: 60px;
+    cursor: pointer; z-index: 110;
+}
+
+/* UTILITY CLASS TO HIDE ELEMENTS */
+.hidden { display: none !important; }
+
+#flash {
+    display: none; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; background: white; z-index: 1000;
+}
+
+#quick-preview {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%; background: black; z-index: 500;
+}
+#preview-img { width: 100%; height: 100%; object-fit: contain; }
+
+/* RESULT PAGE */
+.result-layout { display: flex; gap: 60px; align-items: center; color: white; }
+.strip-preview { height: 85vh; border: 12px solid white; background: white; }
+#result-img { height: 100%; width: auto; }
+.controls { display: flex; flex-direction: column; gap: 30px; }
+.primary-btn { background: #28a745; color: white; padding: 30px; font-size: 24px; border-radius: 20px; border: none; cursor: pointer; }
+.secondary-btn { background: #666; color: white; padding: 20px; font-size: 18px; border-radius: 20px; border: none; cursor: pointer; }

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K's Pro Photo Booth</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app-stage">
+      <div id="main-ui" class="view-panel">
+        <div id="booth-container">
+          <video id="video" autoplay playsinline></video>
+          <div id="mini-countdown"></div>
+          <div id="status-text">CLICK CAPTURE TO START</div>
+          <button type="button" id="snap">CAPTURE</button>
+          <div id="flash"></div>
+        </div>
+      </div>
+
+      <div id="quick-preview">
+        <img id="preview-img" />
+      </div>
+
+      <div id="result-container" class="view-panel" style="display: none">
+        <div class="result-layout">
+          <div class="strip-preview">
+            <img id="result-img" alt="Final Strip" />
+          </div>
+          <div class="controls">
+            <h1>HOW DOES IT LOOK?</h1>
+            <button type="button" id="print-btn" class="primary-btn">
+              PRINT PHOTO
+            </button>
+            <button type="button" id="restart" class="secondary-btn">
+              START OVER
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
